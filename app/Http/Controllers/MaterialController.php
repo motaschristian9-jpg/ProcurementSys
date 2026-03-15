@@ -26,7 +26,7 @@ class MaterialController extends Controller
     {
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'item_code' => 'required|string|max:255',
+            'item_code' => 'required|string|max:50|unique:materials,item_code',
             'material' => 'required|string|max:255',
             'size' => 'nullable|string|max:255',
             'unit' => 'nullable|string|max:255',
@@ -40,14 +40,15 @@ class MaterialController extends Controller
 
         Material::create($validated);
 
-        if ($request->wantsJson()) {
+        if ($request->ajax() || $request->wantsJson()) {
+            session()->flash('success', 'Asset successfully pushed to registry.');
             return response()->json([
                 'success' => true,
-                'message' => 'Material added successfully!',
+                'message' => 'Asset successfully pushed to registry!',
             ]);
         }
 
-        return redirect()->back()->with('success', 'Material added successfully!');
+        return redirect()->back()->with('success', 'Asset successfully pushed to registry.');
     }
 
     public function edit(Material $material)
@@ -59,19 +60,29 @@ class MaterialController extends Controller
     {
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'material' => 'required|string|max:255',
             'item_code' => 'required|string|max:50|unique:materials,item_code,' . $material->id,
-            'size' => 'nullable|string|max:100',
-            'unit' => 'nullable|string|max:20',
-            'price' => 'required|numeric|min:0',
+            'material' => 'required|string|max:255',
+            'size' => 'nullable|string|max:255',
+            'unit' => 'nullable|string|max:255',
             'supplier' => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'brand' => 'nullable|string|max:100'
+            'brand' => 'nullable|string|max:255',
+            'price' => 'nullable|numeric|min:0',
+            'quarter' => 'nullable|string|max:255',
+            'date' => 'nullable|date',
+            'location' => 'required|in:Davao,Local',
         ]);
 
         $material->update($validated);
 
-        return back()->with('success', 'Material updated successfully.');
+        if ($request->ajax() || $request->wantsJson()) {
+            session()->flash('success', 'Registry record updated successfully.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Registry record updated successfully.',
+            ]);
+        }
+
+        return back()->with('success', 'Registry record updated successfully.');
     }
 
     public function destroy(Material $material)

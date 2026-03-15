@@ -303,14 +303,18 @@
             });
 
             if (response.ok) {
-                showToast('Success', 'Ledger updated successfully.', 'success');
+                showToast('Ledger updated successfully.', 'success');
                 window.location.reload();
             } else {
                 const data = await response.json();
-                showToast('Registry Error', data.message || 'Validation failed.', 'error');
+                let errorMsg = data.message || 'Validation failed.';
+                if (data.errors) {
+                    errorMsg = Object.values(data.errors).flat().join(' ');
+                }
+                showToast(errorMsg, 'error');
             }
         } catch (error) {
-            showToast('System Error', 'Failed to communicate with portal.', 'error');
+            showToast('Failed to communicate with portal.', 'error');
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
