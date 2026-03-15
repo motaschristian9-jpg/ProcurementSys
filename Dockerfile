@@ -47,7 +47,8 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Expose port 80
 EXPOSE 80
 
-# The entrypoint will handle migrations at runtime if needed, 
-# but Render usually prefers a build script. 
-# We'll rely on the CMD to start Apache.
-CMD ["apache2-foreground"]
+# Entrypoint script for runtime migrations
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["entrypoint.sh"]
