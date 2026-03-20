@@ -63,6 +63,7 @@
                     @include('layouts.partials.toast')
                     @include('layouts.partials.confirm_modal')
                     @include('layouts.partials.material_modal')
+                    @include('layouts.partials.category_modal')
 
                     <!-- Dynamic Delete Form -->
                     <form id="global-delete-form" method="POST" class="hidden">

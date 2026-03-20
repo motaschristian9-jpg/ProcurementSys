@@ -19,9 +19,14 @@ Route::middleware(['auth'])->group(function () {
     
     // Materials Management
     Route::get('/materials/compare', [MaterialController::class, 'compare'])->name('materials.compare');
+    Route::get('/materials/template', [MaterialController::class, 'downloadTemplate'])->name('materials.template');
+    Route::post('/materials/import', [MaterialController::class, 'import'])->name('materials.import');
+    Route::post('/materials/bulk-delete', [MaterialController::class, 'bulkDelete'])->name('materials.bulk-delete');
     Route::resource('materials', MaterialController::class);
     
     // Categories Hub
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::post('/categories/bulk-delete', [CategoryController::class, 'bulkDelete'])->name('categories.bulk-delete');
     Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 });

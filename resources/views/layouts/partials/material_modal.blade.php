@@ -39,7 +39,7 @@
                             
                             <div class="space-y-6">
                                 <div class="group">
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-indigo-600 transition-colors">Department Hub</label>
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-indigo-600 transition-colors">Category Hub</label>
                                     <select name="category_id" id="field_category_id" required class="w-full px-6 py-4 rounded-xl border border-slate-100 bg-slate-50 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all text-sm font-black uppercase tracking-tighter italic">
                                         <option value="">Select Classification</option>
                                         @foreach(\App\Models\Category::all() as $category)
@@ -52,6 +52,12 @@
                                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-indigo-600 transition-colors">Identification Code</label>
                                     <input type="text" name="item_code" id="field_item_code" required placeholder="e.g., CW-001" 
                                         class="w-full px-6 py-4 rounded-xl border border-slate-100 bg-slate-50 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all text-sm font-black italic">
+                                </div>
+
+                                <div class="group">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-indigo-600 transition-colors">Manufacturer / Brand</label>
+                                    <input type="text" name="brand" id="field_brand" placeholder="e.g., Grand, Holcim..." 
+                                        class="w-full px-6 py-4 rounded-xl border border-slate-100 bg-slate-50 focus:ring-4 focus:ring-indigo-50/10 focus:border-indigo-50 focus:bg-white transition-all text-sm font-black italic">
                                 </div>
 
                                 <div class="group">
@@ -149,8 +155,54 @@
     </div>
 </div>
 
+<!-- Bulk Import Modal -->
+<div id="importModal" class="fixed inset-0 z-60 invisible opacity-0 transition-all duration-300 flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeImportModal()"></div>
+    <div class="relative w-full max-w-md bg-white rounded-3xl p-10 shadow-2xl transform scale-95 transition-all duration-300" id="importCard">
+        <div class="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-8">
+            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+        </div>
+        <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight italic">Bulk <span class="text-indigo-600">Import</span></h3>
+        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">Upload CSV to sync master registry</p>
+        
+        <form id="importForm" class="mt-8 space-y-6">
+            @csrf
+            <div class="group relative">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Select Master CSV File</label>
+                <div id="dropZone" class="border-2 border-dashed border-slate-200 rounded-3xl p-8 transition-all hover:border-indigo-400 hover:bg-indigo-50/30 group-focus-within:border-indigo-500 flex flex-col items-center justify-center gap-3 cursor-pointer relative overflow-hidden bg-slate-50/50">
+                    <input type="file" name="file" id="bulk_file_input" accept=".csv" required 
+                        class="absolute inset-0 opacity-0 cursor-pointer z-10"
+                        onchange="updateFileName(this)">
+                    <div class="h-12 w-12 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    </div>
+                    <div class="text-center">
+                        <p id="file_name_display" class="text-[11px] font-black text-slate-900 uppercase tracking-tight italic">Drag & Drop or Click to Browse</p>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Maximum size: 2MB (CSV format only)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p class="text-[10px] text-slate-500 font-medium leading-relaxed">
+                    Ensure your CSV follows the official template for accurate mapping.
+                </p>
+                <a href="{{ route('materials.template') }}" class="inline-flex items-center gap-2 mt-2 text-[10px] font-black text-indigo-600 hover:text-indigo-700 transition-colors uppercase tracking-widest">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download Template
+                </a>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeImportModal()" class="flex-1 px-6 py-4 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:text-slate-600 transition-colors">Cancel</button>
+                <button type="submit" id="importSubmitBtn" class="flex-1 px-6 py-4 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-indigo-500/20 italic">Process Import</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="fixed inset-0 z-[60] invisible opacity-0 transition-all duration-300 flex items-center justify-center p-4">
+<div id="deleteModal" class="fixed inset-0 z-60 invisible opacity-0 transition-all duration-300 flex items-center justify-center p-4">
     <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeDeleteModal()"></div>
     <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl transform scale-95 transition-all duration-300" id="deleteCard">
         <div class="h-16 w-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mb-6">
@@ -167,6 +219,73 @@
 </div>
 
 <script>
+    function updateFileName(input) {
+        const display = document.getElementById('file_name_display');
+        const dropZone = document.getElementById('dropZone');
+        if (input.files && input.files[0]) {
+            display.innerText = input.files[0].name;
+            display.classList.add('text-indigo-600');
+            dropZone.classList.add('border-indigo-400', 'bg-indigo-50');
+        } else {
+            display.innerText = 'Drag & Drop or Click to Browse';
+            display.classList.remove('text-indigo-600');
+            dropZone.classList.remove('border-indigo-400', 'bg-indigo-50');
+        }
+    }
+
+    function openImportModal() {
+        const modal = document.getElementById('importModal');
+        const card = document.getElementById('importCard');
+        modal.classList.remove('invisible', 'opacity-0');
+        setTimeout(() => {
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeImportModal() {
+        const modal = document.getElementById('importModal');
+        const card = document.getElementById('importCard');
+        card.classList.remove('scale-100');
+        card.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('invisible', 'opacity-0');
+        }, 300);
+    }
+
+    document.getElementById('importForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('importSubmitBtn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = 'Syncing...';
+
+        const formData = new FormData(this);
+        
+        try {
+            const response = await fetch("{{ route('materials.import') }}", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Accept": "application/json"
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                showToast(data.message || 'Import failed. Check file format.', 'error');
+            }
+        } catch (error) {
+            showToast('Failed to connect to registry server.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    });
+
     let currentMaterialId = null;
 
     function openMaterialModal(materialData = null) {
@@ -191,6 +310,7 @@
             document.getElementById('field_category_id').value = materialData.category_id;
             document.getElementById('field_item_code').value = materialData.item_code;
             document.getElementById('field_material').value = materialData.material;
+            document.getElementById('field_brand').value = materialData.brand || '';
             document.getElementById('field_size').value = materialData.size || '';
             document.getElementById('field_unit').value = materialData.unit || '';
             document.getElementById('field_supplier').value = materialData.supplier || '';
@@ -265,13 +385,12 @@
             });
 
             if (response.ok) {
-                showToast('Success', 'Asset removed from registry.', 'success');
                 window.location.reload();
             } else {
-                showToast('Action Failed', 'Could not delete the record.', 'error');
+                showToast('Could not delete the record.', 'error');
             }
         } catch (error) {
-            showToast('System Error', 'Communication breakdown.', 'error');
+            showToast('Communication breakdown.', 'error');
         } finally {
             closeDeleteModal();
             btn.disabled = false;
@@ -303,7 +422,6 @@
             });
 
             if (response.ok) {
-                showToast('Ledger updated successfully.', 'success');
                 window.location.reload();
             } else {
                 const data = await response.json();
