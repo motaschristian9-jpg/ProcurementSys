@@ -184,11 +184,12 @@ class MaterialController extends Controller
             // Map data: item_code, material, category, brand, size, unit, supplier, price, location, quarter
             $rawCategory = $data[2] ?? 'Uncategorized';
             $categoryName = trim(preg_replace('/\s+/', ' ', $rawCategory));
-            $categoryName = ucwords(strtolower($categoryName)); // Standardize to Title Case
+            $categoryName = ucwords(strtolower($categoryName)); // Standardize
+            $slug = \Illuminate\Support\Str::slug($categoryName);
 
             $category = Category::firstOrCreate(
-                ['name' => $categoryName],
-                ['slug' => \Illuminate\Support\Str::slug($categoryName)]
+                ['slug' => $slug],
+                ['name' => $categoryName]
             );
 
             Material::create([
